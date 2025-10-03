@@ -1,7 +1,9 @@
 # src/evaluation.py
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Iterable, Tuple
+from dataclasses import dataclass, asdict
+from typing import Iterable, Tuple, Dict, Any
+import json
+from pathlib import Path
 
 @dataclass
 class Confusion:
@@ -50,3 +52,24 @@ def format_summary(conf: Confusion) -> str:
         f"Recall:    {rec:.4f}",
     ]
     return "\n".join(lines)
+
+def metrics_dict(conf: Confusion) -> Dict[str, Any]:
+    prec, rec = precision_recall(conf)
+    d: Dict[str, Any] = asdict(conf)
+    d.update({
+        "precision": prec,
+        "recall": rec,
+    })
+    return d
+
+def save_metrics_json(path: str | Path, conf: Confusion) -> None:
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8") as f:
+        json.dump(metrics_dict(conf), f, indent=2)
+
+def save_metrics_text(path: str | Path, conf: Confusion) -> None:
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8") as f:
+        f.write(format_summary(conf) + "\n")
