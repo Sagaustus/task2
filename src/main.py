@@ -5,6 +5,7 @@ import csv
 from pathlib import Path
 
 from grammar_checker import parse_dataset  # relies on src/grammar_checker.py
+from evaluation import confusion_from_pairs, format_summary
 
 
 def write_output_tsv(output_path: str | Path, rows) -> None:
@@ -37,6 +38,15 @@ def main():
 
     # Write required output TSV
     write_output_tsv(args.output_tsv, results)
+
+    # --- Evaluation summary (printed to stdout) ---
+    pairs = []
+    for r in results:
+        pred = 0 if r.parsed else 1
+        pairs.append((r.ground_truth, pred))
+    conf = confusion_from_pairs(pairs)
+    print()
+    print(format_summary(conf))
 
 
 if __name__ == "__main__":
